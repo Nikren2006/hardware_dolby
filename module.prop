@@ -1,0 +1,9 @@
+id=dolby-atmos-pocof5
+name=Dolby Atmos for Poco F5 (marble)
+version=1.0
+versionCode=1
+author=Custom Build
+description=Enables Dolby Atmos on Xiaomi Poco F5 (marble) using Pong-Development's hardware_dolby.
+minApi=31
+minMagisk=24000
+slotData=false
