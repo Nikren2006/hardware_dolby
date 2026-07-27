@@ -1,0 +1,27 @@
+name: Build Dolby Atmos Magisk Module
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make build script executable
+        run: chmod +x build_module.sh
+
+      - name: Run build script
+        run: ./build_module.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dolby-atmos-module
+          path: dolby-atmos-marble.zip
