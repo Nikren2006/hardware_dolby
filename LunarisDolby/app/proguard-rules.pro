@@ -1,0 +1,5 @@
+-keep class com.miui.misound.** { *; }
+-keepattributes Signature
+-keepattributes InnerClasses
+-dontwarn kotlinx.coroutines.**
+-dontwarn androidx.compose.**

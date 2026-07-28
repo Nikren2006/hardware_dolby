@@ -1,6 +1,9 @@
 Xiaomi Dolby
 ==============
 
+Package: `com.miui.misound` (replaces Xiaomi MI Sound)
+Shared UID: `android.uid.system` (system-level permissions)
+
 Getting Started
 ---------------
 For dolby media codecs to work add this line in your media codecs config (should be in vendor partition) and make sure your device supports c2 codecs. :-
@@ -9,7 +12,7 @@ For dolby media codecs to work add this line in your media codecs config (should
 <Include href="media_codecs_dolby_audio.xml" />
 ```
 
-To build, add the dolby effects in your device's audio effects config then inherit the dolby config by adding this in your device's makefile :-
+To build, add the dolby effects in your audio effects config then inherit the dolby config by adding this in your device's makefile :-
 
 ```bash
 $(call inherit-product, hardware/dolby/dolby.mk)
@@ -40,4 +43,26 @@ DEVICE_MANIFEST_FILE +=
 ```
 
 The only change done above is changing := symbol to += so that manifest can't be overriden from device tree in BoardConfig makefile.
+
+Building the APK via GitHub Actions
+-----------------------------------
+The APK can be built from source using the GitHub Actions workflow in `.github/workflows/build.yml`.
+
+The workflow builds the `com.miui.misound` APK with system-level signing and packages it into a Magisk module.
+
+Required GitHub Secrets
+-----------------------
+| Secret Name              | Description                                      |
+|--------------------------|--------------------------------------------------|
+| `SIGNING_KEY_STORE`      | Base64-encoded keystore file (platform key)      |
+| `SIGNING_STORE_PASSWORD` | Keystore password                                |
+| `SIGNING_KEY_ALIAS`      | Key alias within the keystore                    |
+| `SIGNING_KEY_PASSWORD`   | Key password                                     |
+
+To generate a keystore for system signing, you need the platform key from your device's OEM or a custom key. The keystore must sign the APK with the same certificate as the original `com.miui.misound` system app for it to replace it properly.
+
+To encode your keystore as base64 for the secret:
+```bash
+base64 -i your-keystore.jks | pbcopy
+```
 
