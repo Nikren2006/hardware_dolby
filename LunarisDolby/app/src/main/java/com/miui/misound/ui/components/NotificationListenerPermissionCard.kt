@@ -21,9 +21,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.miui.misound.R
 import com.miui.misound.service.DolbyNotificationListener
 
@@ -34,20 +31,13 @@ fun NotificationListenerPermissionCard(
     val context = LocalContext.current
     var isEnabled by remember { mutableStateOf(isNotificationListenerEnabled(context)) }
     var showPermissionDialog by remember { mutableStateOf(false) }
-    val lifecycleOwner = LocalLifecycleOwner.current
 
     LaunchedEffect(Unit) {
         isEnabled = isNotificationListenerEnabled(context)
     }
 
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                isEnabled = isNotificationListenerEnabled(context)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    LaunchedEffect(context) {
+        isEnabled = isNotificationListenerEnabled(context)
     }
 
     AnimatedVisibility(

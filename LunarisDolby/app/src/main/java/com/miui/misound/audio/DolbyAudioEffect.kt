@@ -6,18 +6,17 @@
 package com.miui.misound.audio
 
 import android.media.audiofx.AudioEffect
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.util.Log
 import com.miui.misound.DolbyConstants
 import com.miui.misound.DolbyConstants.DsParam
 import java.lang.reflect.Constructor
+import java.lang.reflect.Method
 import java.util.UUID
 
 class DolbyAudioEffect(priority: Int, audioSession: Int) {
-    private var effect: AudioEffect? = null
+    private var effect: Any? = null
     private var released = false
+    private var hasControlVal = false
 
     init {
         try {
@@ -25,6 +24,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) {
                 .getDeclaredConstructor(UUID::class.java, UUID::class.java, Int::class.java, Int::class.java)
             ctor.isAccessible = true
             effect = ctor.newInstance(EFFECT_TYPE_NULL, EFFECT_TYPE_DAP, priority, audioSession)
+            hasControlVal = true
         } catch (e: Exception) {
             DolbyConstants.dlog(TAG, "Reflective AudioEffect construction failed: ${e.message}")
         }
@@ -34,7 +34,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) {
         get() = getIntParam(EFFECT_PARAM_ENABLE) == 1
         set(value) {
             setIntParam(EFFECT_PARAM_ENABLE, if (value) 1 else 0)
-            effect?.enabled = value
+            setField("enabled", value)
         }
 
     var profile: Int
@@ -49,19 +49,19 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) {
         int32ToByteArray(param, buf, 0)
         int32ToByteArray(1, buf, 4)
         int32ToByteArray(value, buf, 8)
-        runCatching { effect?.setParameter(EFFECT_PARAM_CPDP_VALUES, buf) }
-            .onFailure { DolbyConstants.dlog(TAG, "setParameter failed: ${it.message}") }
+        call("setParameter", EFFECT_PARAM_CPDP_VALUES, buf)
     }
 
     private fun getIntParam(param: Int): Int {
         val buf = ByteArray(12)
         int32ToByteArray(param, buf, 0)
-        runCatching { effect?.getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf) }
-            .onFailure { DolbyConstants.dlog(TAG, "getParameter failed: ${it.message}") }
+        call("getParameter", EFFECT_PARAM_CPDP_VALUES + param, buf)
         return byteArrayToInt32(buf).also {
             DolbyConstants.dlog(TAG, "getIntParam($param): $it")
         }
     }
+
+    fun hasControl(): Boolean = hasControlVal
 
     fun resetProfileSpecificSettings(profile: Int = this.profile) {
         DolbyConstants.dlog(TAG, "resetProfileSpecificSettings: profile=$profile")
@@ -77,8 +77,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) {
         int32ToByteArray(profile, buf, 8)
         int32ToByteArray(param.id, buf, 12)
         int32ArrayToByteArray(values, buf, 16)
-        runCatching { effect?.setParameter(EFFECT_PARAM_CPDP_VALUES, buf) }
-            .onFailure { DolbyConstants.dlog(TAG, "setParameter failed: ${it.message}") }
+        call("setParameter", EFFECT_PARAM_CPDP_VALUES, buf)
     }
 
     fun setDapParameter(param: DsParam, enable: Boolean, profile: Int = this.profile) =
@@ -92,8 +91,7 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) {
         val length = param.length
         val buf = ByteArray((length + 2) * 4)
         val p = (param.id shl 16) + (profile shl 8) + EFFECT_PARAM_GET_PROFILE_PARAMETER
-        runCatching { effect?.getParameter(p, buf) }
-            .onFailure { DolbyConstants.dlog(TAG, "getParameter failed: ${it.message}") }
+        call("getParameter", p, buf)
         return byteArrayToInt32Array(buf, length)
     }
 
@@ -106,7 +104,33 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) {
     fun release() {
         if (!released) {
             released = true
-            runCatching { effect?.release() }
+            runCatching { call("release") }
+        }
+    }
+
+    private fun call(name: String, vararg args: Any?) {
+        try {
+            val target = effect ?: return
+            val method = if (args.isEmpty()) {
+                AudioEffect::class.java.getDeclaredMethod(name)
+            } else {
+                AudioEffect::class.java.getDeclaredMethod(name, *args.map { it!!::class.java }.toTypedArray())
+            }
+            method.isAccessible = true
+            method.invoke(target, *args)
+        } catch (e: Exception) {
+            DolbyConstants.dlog(TAG, "$name failed: ${e.message}")
+        }
+    }
+
+    private fun setField(name: String, value: Any?) {
+        try {
+            val target = effect ?: return
+            val field = AudioEffect::class.java.getDeclaredField(name)
+            field.isAccessible = true
+            field.set(target, value)
+        } catch (e: Exception) {
+            DolbyConstants.dlog(TAG, "$name failed: ${e.message}")
         }
     }
 

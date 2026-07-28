@@ -8,6 +8,7 @@ package com.miui.misound.ui.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -43,7 +44,7 @@ fun FloatingNavToolbar(
     val primaryColor = MaterialTheme.colorScheme.primary
     val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
 
-Box(
+    Box(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
@@ -136,27 +137,27 @@ private fun NavToolbarItem(
 ) {
     val currentSelectionKey = remember(selected) { selected }
     
-    ToggleButton(
+    Surface(
         checked = selected,
         onCheckedChange = { onClick() },
-        colors = ToggleButtonDefaults.toggleButtonColors(
-            containerColor = containerColor,
-            contentColor = onContainerColor,
-            checkedContainerColor = primaryColor,
-            checkedContentColor = onPrimaryColor
-        ),
-        shapes = ToggleButtonDefaults.shapes(
-            androidx.compose.foundation.shape.CircleShape,
-            androidx.compose.foundation.shape.CircleShape,
-            androidx.compose.foundation.shape.CircleShape
-        ),
-        modifier = modifier.height(56.dp)
+        modifier = modifier
+            .height(56.dp)
+            .padding(horizontal = 4.dp),
+        shape = CircleShape,
+        color = if (selected) primaryColor else containerColor,
+        contentColor = if (selected) onPrimaryColor else onContainerColor,
+        tonalElevation = if (selected) 2.dp else 0.dp,
+        shadowElevation = if (selected) 2.dp else 0.dp,
+        clickable = true,
+        onClick = onClick
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.animateContentSize(
-                animationSpec = tween(durationMillis = 300)
-            )
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .animateContentSize(
+                    animationSpec = tween(durationMillis = 300)
+                )
         ) {
             key(currentSelectionKey) {
                 Crossfade(
@@ -201,7 +202,7 @@ private fun NavToolbarItem(
                     maxLines = 1,
                     softWrap = false,
                     overflow = TextOverflow.Clip,
-                    modifier = Modifier.padding(start = ButtonDefaults.IconSpacing)
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
         }
