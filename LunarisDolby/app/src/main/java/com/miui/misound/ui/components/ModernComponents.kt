@@ -81,7 +81,6 @@ fun Modifier.squishable(
         }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun DolbyMainCard(
     enabled: Boolean,
@@ -156,7 +155,7 @@ fun DolbyMainCard(
                         thumbContent = {
                             Crossfade(
                                 targetState = enabled,
-                                animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+                                animationSpec = tween(durationMillis = 400),
                                 label = "switch_icon"
                             ) { isChecked ->
                                 if (isChecked) {
@@ -244,7 +243,6 @@ fun ModernSettingsCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ModernSettingSwitch(
     title: String,
@@ -316,7 +314,7 @@ fun ModernSettingSwitch(
                 thumbContent = {
                     Crossfade(
                         targetState = checked,
-                        animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+                        animationSpec = tween(durationMillis = 400),
                         label = "switch_icon"
                     ) { isChecked ->
                         if (isChecked) {

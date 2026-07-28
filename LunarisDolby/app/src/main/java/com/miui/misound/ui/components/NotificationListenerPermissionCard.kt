@@ -27,7 +27,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.miui.misound.R
 import com.miui.misound.service.DolbyNotificationListener
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NotificationListenerPermissionCard(
     modifier: Modifier = Modifier

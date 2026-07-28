@@ -10,6 +10,7 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -27,7 +28,6 @@ import com.miui.misound.R
 import com.miui.misound.service.AppProfileMonitorService
 import com.miui.misound.DolbyConstants
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppProfileSettingsCard(
     onManageClick: () -> Unit,
@@ -128,7 +128,7 @@ fun AppProfileSettingsCard(
                     thumbContent = {
                         Crossfade(
                             targetState = isEnabled,
-                            animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+                            animationSpec = tween(durationMillis = 400),
                             label = "switch_icon"
                         ) { isChecked ->
                             if (isChecked) {
@@ -201,7 +201,7 @@ fun AppProfileSettingsCard(
                             thumbContent = {
                                 Crossfade(
                                     targetState = headphoneOnlyMode,
-                                    animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+                                    animationSpec = tween(durationMillis = 400),
                                     label = "headphone_switch_icon"
                                 ) { isChecked ->
                                     if (isChecked) {
@@ -245,7 +245,7 @@ fun AppProfileSettingsCard(
                             thumbContent = {
                                 Crossfade(
                                     targetState = showToasts,
-                                    animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+                                    animationSpec = tween(durationMillis = 400),
                                     label = "toast_switch_icon"
                                 ) { isChecked ->
                                     if (isChecked) {
@@ -329,7 +329,7 @@ fun AppProfileSettingsCard(
                     thumbContent = {
                         Crossfade(
                             targetState = isDeviceStateMemoryEnabled,
-                            animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+                            animationSpec = tween(durationMillis = 400),
                             label = "device_memory_switch_icon"
                         ) { isChecked ->
                             if (isChecked) {

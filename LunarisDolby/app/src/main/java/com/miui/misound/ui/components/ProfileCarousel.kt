@@ -37,7 +37,7 @@ import com.miui.misound.R
 import com.miui.misound.utils.*
 import kotlin.math.absoluteValue
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ProfileCarousel(
     currentProfile: Int,
@@ -167,7 +167,7 @@ fun ProfileCarousel(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileCard(
     profile: String,
@@ -221,7 +221,7 @@ private fun ProfileCard(
             ) {
                 val iconScale by animateFloatAsState(
                     targetValue = if (isSelected) 1f else 0.85f,
-                    animationSpec = MaterialTheme.motionScheme.slowSpatialSpec(),
+                    animationSpec = tween(durationMillis = 400),
                     label = "icon_scale"
                 )
                 

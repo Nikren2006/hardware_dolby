@@ -36,7 +36,6 @@ data class Contributor(
     val isHighlighted: Boolean = false
 )
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun CreditsDialog(
     onDismiss: () -> Unit

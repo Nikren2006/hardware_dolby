@@ -33,7 +33,7 @@ import com.miui.misound.ui.components.ModernConfirmDialog
 import com.miui.misound.ui.viewmodel.EqualizerViewModel
 import com.miui.misound.utils.ToastHelper
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PresetImportExportScreen(
     viewModel: EqualizerViewModel,

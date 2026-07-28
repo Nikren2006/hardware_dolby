@@ -27,7 +27,7 @@ import com.miui.misound.domain.models.DolbyUiState
 import com.miui.misound.ui.components.*
 import com.miui.misound.ui.viewmodel.DolbyViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModernAdvancedSettingsScreen(
     viewModel: DolbyViewModel,

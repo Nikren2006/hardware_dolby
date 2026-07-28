@@ -34,7 +34,7 @@ import com.miui.misound.domain.models.AppProfileUiState
 import com.miui.misound.ui.components.ModernConfirmDialog
 import com.miui.misound.ui.viewmodel.AppProfileViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppProfileScreen(
     viewModel: AppProfileViewModel,

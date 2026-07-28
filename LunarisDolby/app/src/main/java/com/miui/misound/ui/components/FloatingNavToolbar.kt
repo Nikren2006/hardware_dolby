@@ -6,7 +6,7 @@
 package com.miui.misound.ui.components
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import com.miui.misound.R
 import com.miui.misound.utils.*
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FloatingNavToolbar(
     currentRoute: String,
@@ -44,81 +43,84 @@ fun FloatingNavToolbar(
     val primaryColor = MaterialTheme.colorScheme.primary
     val onPrimaryColor = MaterialTheme.colorScheme.onPrimary
 
-    Box(
+Box(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
-        HorizontalFloatingToolbar(
-            expanded = true,
-            colors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(
-                toolbarContainerColor = containerColor,
-                toolbarContentColor = onContainerColor
-            ),
+        Surface(
             modifier = Modifier
                 .padding(
-                    top = FloatingToolbarDefaults.ScreenOffset,
-                    bottom = FloatingToolbarDefaults.ScreenOffset
+                    top = 16.dp,
+                    bottom = 16.dp
                 )
                 .shadow(
                     elevation = 16.dp,
                     shape = MaterialTheme.shapes.extraLarge,
                     ambientColor = Color.Black.copy(alpha = 0.4f),
                     spotColor = Color.Black.copy(alpha = 0.5f)
-                )
+                ),
+            shape = MaterialTheme.shapes.extraLarge,
+            color = containerColor,
+            contentColor = onContainerColor
         ) {
-            NavToolbarItem(
-                icon = Icons.Default.Home,
-                label = stringResource(R.string.home),
-                selected = isHomeSelected,
-                primaryColor = primaryColor,
-                onPrimaryColor = onPrimaryColor,
-                containerColor = containerColor,
-                onContainerColor = onContainerColor,
-                onClick = {
-                    scope.launch {
-                        haptic.performHaptic(HapticFeedbackHelper.HapticIntensity.CLICK)
+            Row(
+                modifier = Modifier.padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                NavToolbarItem(
+                    icon = Icons.Default.Home,
+                    label = stringResource(R.string.home),
+                    selected = isHomeSelected,
+                    primaryColor = primaryColor,
+                    onPrimaryColor = onPrimaryColor,
+                    containerColor = containerColor,
+                    onContainerColor = onContainerColor,
+                    onClick = {
+                        scope.launch {
+                            haptic.performHaptic(HapticFeedbackHelper.HapticIntensity.CLICK)
+                        }
+                        onNavigate("settings")
                     }
-                    onNavigate("settings")
-                }
-            )
-            
-            NavToolbarItem(
-                icon = Icons.Default.GraphicEq,
-                label = stringResource(R.string.equalizer),
-                selected = isEqualizerSelected,
-                isEqualizer = true,
-                primaryColor = primaryColor,
-                onPrimaryColor = onPrimaryColor,
-                containerColor = containerColor,
-                onContainerColor = onContainerColor,
-                onClick = {
-                    scope.launch {
-                        haptic.performHaptic(HapticFeedbackHelper.HapticIntensity.CLICK)
+                )
+                
+                NavToolbarItem(
+                    icon = Icons.Default.GraphicEq,
+                    label = stringResource(R.string.equalizer),
+                    selected = isEqualizerSelected,
+                    isEqualizer = true,
+                    primaryColor = primaryColor,
+                    onPrimaryColor = onPrimaryColor,
+                    containerColor = containerColor,
+                    onContainerColor = onContainerColor,
+                    onClick = {
+                        scope.launch {
+                            haptic.performHaptic(HapticFeedbackHelper.HapticIntensity.CLICK)
+                        }
+                        onNavigate("equalizer")
                     }
-                    onNavigate("equalizer")
-                }
-            )
-            
-            NavToolbarItem(
-                icon = Icons.Default.Settings,
-                label = stringResource(R.string.advanced),
-                selected = isAdvancedSelected,
-                primaryColor = primaryColor,
-                onPrimaryColor = onPrimaryColor,
-                containerColor = containerColor,
-                onContainerColor = onContainerColor,
-                onClick = {
-                    scope.launch {
-                        haptic.performHaptic(HapticFeedbackHelper.HapticIntensity.CLICK)
+                )
+                
+                NavToolbarItem(
+                    icon = Icons.Default.Settings,
+                    label = stringResource(R.string.advanced),
+                    selected = isAdvancedSelected,
+                    primaryColor = primaryColor,
+                    onPrimaryColor = onPrimaryColor,
+                    containerColor = containerColor,
+                    onContainerColor = onContainerColor,
+                    onClick = {
+                        scope.launch {
+                            haptic.performHaptic(HapticFeedbackHelper.HapticIntensity.CLICK)
+                        }
+                        onNavigate("advanced")
                     }
-                    onNavigate("advanced")
-                }
-            )
+                )
+            }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun NavToolbarItem(
     icon: ImageVector,
@@ -153,13 +155,13 @@ private fun NavToolbarItem(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.animateContentSize(
-                animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec()
+                animationSpec = tween(durationMillis = 300)
             )
         ) {
             key(currentSelectionKey) {
                 Crossfade(
                     targetState = isEqualizer,
-                    animationSpec = MaterialTheme.motionScheme.slowEffectsSpec(),
+                    animationSpec = tween(durationMillis = 400),
                     label = "icon_transition_$label"
                 ) { isEq ->
                     if (isEq) {
@@ -180,16 +182,16 @@ private fun NavToolbarItem(
             AnimatedVisibility(
                 visible = selected,
                 enter = expandHorizontally(
-                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                    animationSpec = tween(durationMillis = 300),
                     expandFrom = Alignment.Start
                 ) + fadeIn(
-                    animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec()
+                    animationSpec = tween(durationMillis = 300)
                 ),
                 exit = shrinkHorizontally(
-                    animationSpec = MaterialTheme.motionScheme.defaultSpatialSpec(),
+                    animationSpec = tween(durationMillis = 300),
                     shrinkTowards = Alignment.Start
                 ) + fadeOut(
-                    animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec()
+                    animationSpec = tween(durationMillis = 300)
                 ),
                 label = "text_visibility_$label"
             ) {
