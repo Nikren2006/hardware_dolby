@@ -1,12 +1,2 @@
-pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == 'kotlin-android') {
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.22")
-            }
-        }
-    }
-}
-
 rootProject.name = "MiSound"
 include ':app'
