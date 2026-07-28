@@ -161,6 +161,7 @@
     <string name="import_single_file">Single File</string>
     <string name="import_batch">Batch</string>
     <string name="import_from_clipboard">From Clipboard</string>
+    <string name="dolby_read_only">Read only</string>
     <string name="your_custom_presets">Your Custom Presets</string>
     <string name="processing">Processing...</string>
     <string name="batch_export">Batch Export</string>
