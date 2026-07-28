@@ -15,6 +15,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout repository
@@ -92,23 +95,20 @@ jobs:
 
       - name: Create Release
         if: ${{ inputs.release_tag != '' }}
-        id: create_release
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ inputs.release_tag || 'auto-build' }}
-          release_name: ${{ inputs.release_title || 'MI Sound Module - Manual Build' }}
-          draft: false
-          prerelease: false
+        run: |
+          gh release create "${{ inputs.release_tag }}" \
+            --repo "${{ github.repository }}" \
+            --title "${{ inputs.release_title }}" \
+            --notes "Automated build from GitHub Actions"
 
       - name: Upload Release Asset
         if: ${{ inputs.release_tag != '' }}
-        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./misound-module.zip
-          asset_name: misound-module.zip
-          asset_content_type: application/zip
+        run: |
+          gh release upload "${{ inputs.release_tag }}" \
+            --repo "${{ github.repository }}" \
+            ./misound-module.zip \
+            --clobber
