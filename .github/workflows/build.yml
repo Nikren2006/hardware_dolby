@@ -1,10 +1,16 @@
 name: Build Dolby Atmos Magisk Module
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:  # Запуск вручную через GitHub Actions UI
+    inputs:
+      release_tag:
+        description: 'Tag for release (optional)'
+        required: false
+        default: 'auto-build'
+      release_title:
+        description: 'Title for release'
+        required: false
+        default: 'Dolby Atmos Module for Poco F5 (marble) - Manual Build'
 
 jobs:
   build:
@@ -13,6 +19,18 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Prepare directories
+        run: mkdir -p assets/libs
+
+      - name: Download Dolby APK and libraries
+        run: |
+          curl -L -o assets/DaxAppService.apk "https://github.com/Pong-Development/hardware_dolby/raw/main/DaxAppService.apk"
+          curl -L -o assets/libs/libdlbalm.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libdlbalm.so"
+          curl -L -o assets/libs/libswdap.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswdap.so"
+          curl -L -o assets/libs/libswgamedap.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswgamedap.so"
+          curl -L -o assets/libs/libswvqe.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswvqe.so"
+          # Добавь остальные .so файлы, если есть
 
       - name: Make build script executable
         run: chmod +x build_module.sh
@@ -25,3 +43,26 @@ jobs:
         with:
           name: dolby-atmos-module
           path: dolby-atmos-marble.zip
+
+      - name: Create Release
+        if: ${{ inputs.release_tag != '' }}
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ inputs.release_tag || 'auto-build' }}
+          release_name: ${{ inputs.release_title || 'Dolby Atmos Module for Poco F5 (marble) - Manual Build' }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        if: ${{ inputs.release_tag != '' }}
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dolby-atmos-marble.zip
+          asset_name: dolby-atmos-marble.zip
+          asset_content_type: application/zip
