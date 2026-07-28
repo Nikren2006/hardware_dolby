@@ -1,0 +1,53 @@
+plugins {
+    id 'com.android.application'
+    id 'kotlin-android'
+}
+
+android {
+    namespace 'com.miui.misound'   // или ваш реальный package
+    compileSdk 34   // используйте актуальную версию
+
+    defaultConfig {
+        applicationId "com.miui.misound"   // тот же, что и в Android.bp
+        minSdk 31
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+        }
+        release {
+            minifyEnabled false   // можно включить, если нужно
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    sourceSets {
+        main {
+            // Указываем, где лежат ваши исходники
+            java.srcDirs = ['../src/main/java', '../src/main/kotlin']
+            res.srcDirs = ['../src/main/res']
+            manifest.srcFile '../src/main/AndroidManifest.xml'
+            // Если есть другие папки (aidl, assets) — добавьте аналогично
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    // Если у вас есть зависимости от AOSP-библиотек — они здесь не сработают.
+    // Добавляйте только те, что есть в публичных репозиториях:
+    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    // и другие, если нужны
+}
