@@ -1,5 +1,4 @@
 -keep class com.miui.misound.** { *; }
--keep class org.lunaris.dolby.** { *; }
 -keepattributes Signature
 -keepattributes InnerClasses
 -dontwarn kotlinx.coroutines.**

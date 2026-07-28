@@ -26,36 +26,48 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          gradle-version: '8.2'
+      - name: Install Android SDK
+        run: |
+          mkdir -p $HOME/android-sdk/cmdline-tools
+          curl -L -o $HOME/android-sdk/cmdline-tools/tools.zip \
+            https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip -q $HOME/android-sdk/cmdline-tools/tools.zip -d $HOME/android-sdk/cmdline-tools/
+          mkdir -p $HOME/android-sdk/cmdline-tools/latest
+          mv $HOME/android-sdk/cmdline-tools/cmdline-tools/* $HOME/android-sdk/cmdline-tools/latest/ 2>/dev/null || true
+          rm -f $HOME/android-sdk/cmdline-tools/tools.zip
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+
+      - name: Accept Android licenses
+        run: yes | sdkmanager --licenses || true
+
+      - name: Install build-tools and platform
+        run: sdkmanager "build-tools;34.0.0" "platforms;android-34"
 
       - name: Decode signing keystore
         run: |
           echo "${{ secrets.SIGNING_KEY_STORE }}" | base64 -d > release.keystore
 
       - name: Build release APK
-        working-directory: LunarisDolby
-        env:
-          SIGNING_STORE_FILE: ${{ github.workspace }}/release.keystore
-          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
-          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
-        run: gradle :app:assembleRelease
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+        uses: gradle/gradle-build-action@v3
         with:
-          name: misound-apk
-          path: LunarisDolby/app/build/outputs/apk/release/app-release.apk
+          gradle-version: '8.2'
+          arguments: :app:assembleRelease
+          working-directory: LunarisDolby
+          env:
+            SIGNING_STORE_FILE: ${{ github.workspace }}/release.keystore
+            SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+            SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+            SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+
+      - name: Ensure assets directory exists
+        run: mkdir -p assets/libs
 
       - name: Copy APK for module packaging
         run: cp LunarisDolby/app/build/outputs/apk/release/app-release.apk assets/MiSound.apk
 
       - name: Download Dolby hardware libraries
         run: |
-          mkdir -p assets/libs
           curl -L -o assets/libs/libdlbalm.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libdlbalm.so"
           curl -L -o assets/libs/libswdap.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswdap.so"
           curl -L -o assets/libs/libswgamedap.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswgamedap.so"
