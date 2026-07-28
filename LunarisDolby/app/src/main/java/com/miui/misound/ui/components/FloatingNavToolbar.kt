@@ -137,28 +137,28 @@ private fun NavToolbarItem(
 ) {
     val currentSelectionKey = remember(selected) { selected }
     
-    Surface(
-        checked = selected,
-        onCheckedChange = { onClick() },
-        modifier = modifier
-            .height(56.dp)
-            .padding(horizontal = 4.dp),
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        modifier = modifier.height(56.dp),
         shape = CircleShape,
-        color = if (selected) primaryColor else containerColor,
-        contentColor = if (selected) onPrimaryColor else onContainerColor,
-        tonalElevation = if (selected) 2.dp else 0.dp,
-        shadowElevation = if (selected) 2.dp else 0.dp,
-        clickable = true,
-        onClick = onClick
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .animateContentSize(
-                    animationSpec = tween(durationMillis = 300)
-                )
-        ) {
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = primaryColor,
+            selectedLabelColor = onPrimaryColor,
+            containerColor = containerColor,
+            labelColor = onContainerColor,
+            iconColor = if (selected) onPrimaryColor else onContainerColor,
+            selectedLeadingIconColor = onPrimaryColor
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            borderColor = Color.Transparent,
+            borderWidth = 0.dp,
+            selectedBorderColor = Color.Transparent,
+            selectedBorderWidth = 0.dp,
+            enabled = true,
+            selected = selected
+        ),
+        leadingIcon = {
             key(currentSelectionKey) {
                 Crossfade(
                     targetState = isEqualizer,
@@ -179,20 +179,21 @@ private fun NavToolbarItem(
                     }
                 }
             }
-            
+        },
+        label = {
             AnimatedVisibility(
                 visible = selected,
-                enter = expandHorizontally(
+                enter = fadeIn(
+                    animationSpec = tween(durationMillis = 300)
+                ) + expandHorizontally(
                     animationSpec = tween(durationMillis = 300),
                     expandFrom = Alignment.Start
-                ) + fadeIn(
-                    animationSpec = tween(durationMillis = 300)
                 ),
-                exit = shrinkHorizontally(
+                exit = fadeOut(
+                    animationSpec = tween(durationMillis = 300)
+                ) + shrinkHorizontally(
                     animationSpec = tween(durationMillis = 300),
                     shrinkTowards = Alignment.Start
-                ) + fadeOut(
-                    animationSpec = tween(durationMillis = 300)
                 ),
                 label = "text_visibility_$label"
             ) {
@@ -201,10 +202,9 @@ private fun NavToolbarItem(
                     fontSize = 16.sp,
                     maxLines = 1,
                     softWrap = false,
-                    overflow = TextOverflow.Clip,
-                    modifier = Modifier.padding(start = 8.dp)
+                    overflow = TextOverflow.Clip
                 )
             }
         }
-    }
+    )
 }
