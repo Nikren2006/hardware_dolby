@@ -7,7 +7,6 @@ package com.miui.misound.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.media.AudioAttributes
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import com.miui.misound.DolbyConstants
@@ -121,7 +120,7 @@ class DolbyRepository(private val context: Context) : AutoCloseable {
     }
 
     fun applySavedState() {
-    checkEffect()
+        checkEffect()
         val enabled = defaultPrefs.getBoolean(DolbyConstants.PREF_ENABLE, false)
         dolbyEffect.dsOn = enabled
         if (enabled) {
@@ -131,8 +130,9 @@ class DolbyRepository(private val context: Context) : AutoCloseable {
 
     private fun checkIsOnSpeaker(): Boolean {
         return try {
-            val device = audioManager.getDevicesForAttributes(ATTRIBUTES_MEDIA)[0]
-            device.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER
+            val device = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                .firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
+            device != null
         } catch (e: Exception) {
             DolbyConstants.dlog(TAG, "Error checking speaker state: ${e.message}")
             false
@@ -916,10 +916,6 @@ class DolbyRepository(private val context: Context) : AutoCloseable {
         private const val BASS_GAIN_MULTIPLIER = 1.4f
         private const val MID_GAIN_MULTIPLIER = 1.3f
         private const val TREBLE_GAIN_MULTIPLIER = 1.5f
-        
-        private val ATTRIBUTES_MEDIA = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_MEDIA)
-            .build()
 
         val BAND_FREQUENCIES_10 = listOf(32, 64, 125, 250, 500, 1000, 2250, 5000, 10000, 19688)
         

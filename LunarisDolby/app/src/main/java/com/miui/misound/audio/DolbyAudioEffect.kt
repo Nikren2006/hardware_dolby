@@ -6,19 +6,35 @@
 package com.miui.misound.audio
 
 import android.media.audiofx.AudioEffect
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
+import android.util.Log
 import com.miui.misound.DolbyConstants
 import com.miui.misound.DolbyConstants.DsParam
+import java.lang.reflect.Constructor
 import java.util.UUID
 
-class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
-    EFFECT_TYPE_NULL, EFFECT_TYPE_DAP, priority, audioSession
-) {
+class DolbyAudioEffect(priority: Int, audioSession: Int) {
+    private var effect: AudioEffect? = null
+    private var released = false
+
+    init {
+        try {
+            val ctor: Constructor<AudioEffect> = AudioEffect::class.java
+                .getDeclaredConstructor(UUID::class.java, UUID::class.java, Int::class.java, Int::class.java)
+            ctor.isAccessible = true
+            effect = ctor.newInstance(EFFECT_TYPE_NULL, EFFECT_TYPE_DAP, priority, audioSession)
+        } catch (e: Exception) {
+            DolbyConstants.dlog(TAG, "Reflective AudioEffect construction failed: ${e.message}")
+        }
+    }
 
     var dsOn: Boolean
         get() = getIntParam(EFFECT_PARAM_ENABLE) == 1
         set(value) {
             setIntParam(EFFECT_PARAM_ENABLE, if (value) 1 else 0)
-            enabled = value
+            effect?.enabled = value
         }
 
     var profile: Int
@@ -33,13 +49,15 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         int32ToByteArray(param, buf, 0)
         int32ToByteArray(1, buf, 4)
         int32ToByteArray(value, buf, 8)
-        checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
+        runCatching { effect?.setParameter(EFFECT_PARAM_CPDP_VALUES, buf) }
+            .onFailure { DolbyConstants.dlog(TAG, "setParameter failed: ${it.message}") }
     }
 
     private fun getIntParam(param: Int): Int {
         val buf = ByteArray(12)
         int32ToByteArray(param, buf, 0)
-        checkStatus(getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf))
+        runCatching { effect?.getParameter(EFFECT_PARAM_CPDP_VALUES + param, buf) }
+            .onFailure { DolbyConstants.dlog(TAG, "getParameter failed: ${it.message}") }
         return byteArrayToInt32(buf).also {
             DolbyConstants.dlog(TAG, "getIntParam($param): $it")
         }
@@ -59,7 +77,8 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         int32ToByteArray(profile, buf, 8)
         int32ToByteArray(param.id, buf, 12)
         int32ArrayToByteArray(values, buf, 16)
-        checkStatus(setParameter(EFFECT_PARAM_CPDP_VALUES, buf))
+        runCatching { effect?.setParameter(EFFECT_PARAM_CPDP_VALUES, buf) }
+            .onFailure { DolbyConstants.dlog(TAG, "setParameter failed: ${it.message}") }
     }
 
     fun setDapParameter(param: DsParam, enable: Boolean, profile: Int = this.profile) =
@@ -73,7 +92,8 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
         val length = param.length
         val buf = ByteArray((length + 2) * 4)
         val p = (param.id shl 16) + (profile shl 8) + EFFECT_PARAM_GET_PROFILE_PARAMETER
-        checkStatus(getParameter(p, buf))
+        runCatching { effect?.getParameter(p, buf) }
+            .onFailure { DolbyConstants.dlog(TAG, "getParameter failed: ${it.message}") }
         return byteArrayToInt32Array(buf, length)
     }
 
@@ -83,9 +103,17 @@ class DolbyAudioEffect(priority: Int, audioSession: Int) : AudioEffect(
     fun getDapParameterInt(param: DsParam, profile: Int = this.profile): Int =
         getDapParameter(param, profile)[0]
 
+    fun release() {
+        if (!released) {
+            released = true
+            runCatching { effect?.release() }
+        }
+    }
+
     companion object {
         private const val TAG = "DolbyAudioEffect"
         private val EFFECT_TYPE_DAP = UUID.fromString("9d4921da-8225-4f29-aefa-39537a04bcaa")
+        private val EFFECT_TYPE_NULL = UUID(0L, 0L)
 
         private const val EFFECT_PARAM_ENABLE = 0
         private const val EFFECT_PARAM_CPDP_VALUES = 5

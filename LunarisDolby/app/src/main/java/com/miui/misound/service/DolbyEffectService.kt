@@ -54,8 +54,7 @@ class DolbyEffectService : Service() {
 
     private val playbackCallback = object : AudioManager.AudioPlaybackCallback() {
         override fun onPlaybackConfigChanged(configs: MutableList<AudioPlaybackConfiguration>?) {
-            val isActive = configs?.any { it.isActive } == true
-            if (isActive) {
+            if (configs != null && configs.isNotEmpty()) {
                 repository.applySavedState()
             }
         }
