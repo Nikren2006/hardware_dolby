@@ -1,7 +1,7 @@
-name: Build Dolby Atmos Magisk Module
+name: Build MI Sound APK & Magisk Module
 
 on:
-  workflow_dispatch:  # Запуск вручную через GitHub Actions UI
+  workflow_dispatch:
     inputs:
       release_tag:
         description: 'Tag for release (optional)'
@@ -10,7 +10,7 @@ on:
       release_title:
         description: 'Title for release'
         required: false
-        default: 'Dolby Atmos Module for Poco F5 (marble) - Manual Build'
+        default: 'MI Sound Module - Manual Build'
 
 jobs:
   build:
@@ -20,29 +20,58 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Prepare directories
-        run: mkdir -p assets/libs
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Download Dolby APK and libraries
+      - name: Install Gradle
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: '8.2'
+
+      - name: Decode signing keystore
         run: |
-          curl -L -o assets/DaxAppService.apk "https://github.com/Pong-Development/hardware_dolby/raw/main/DaxAppService.apk"
+          echo "${{ secrets.SIGNING_KEY_STORE }}" | base64 -d > release.keystore
+
+      - name: Build release APK
+        working-directory: LunarisDolby
+        env:
+          SIGNING_STORE_FILE: ${{ github.workspace }}/release.keystore
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: gradle :app:assembleRelease
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: misound-apk
+          path: LunarisDolby/app/build/outputs/apk/release/app-release.apk
+
+      - name: Copy APK for module packaging
+        run: cp LunarisDolby/app/build/outputs/apk/release/app-release.apk assets/MiSound.apk
+
+      - name: Download Dolby hardware libraries
+        run: |
+          mkdir -p assets/libs
           curl -L -o assets/libs/libdlbalm.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libdlbalm.so"
           curl -L -o assets/libs/libswdap.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswdap.so"
           curl -L -o assets/libs/libswgamedap.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswgamedap.so"
           curl -L -o assets/libs/libswvqe.so "https://github.com/Pong-Development/hardware_dolby/raw/main/vendor/lib64/soundfx/libswvqe.so"
-          # Добавь остальные .so файлы, если есть
 
       - name: Make build script executable
         run: chmod +x build_module.sh
 
-      - name: Run build script
+      - name: Build Magisk module
         run: ./build_module.sh
 
-      - name: Upload artifact
+      - name: Upload module artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dolby-atmos-module
-          path: dolby-atmos-marble.zip
+          name: misound-module
+          path: misound-module.zip
 
       - name: Create Release
         if: ${{ inputs.release_tag != '' }}
@@ -52,7 +81,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ inputs.release_tag || 'auto-build' }}
-          release_name: ${{ inputs.release_title || 'Dolby Atmos Module for Poco F5 (marble) - Manual Build' }}
+          release_name: ${{ inputs.release_title || 'MI Sound Module - Manual Build' }}
           draft: false
           prerelease: false
 
@@ -63,6 +92,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./dolby-atmos-marble.zip
-          asset_name: dolby-atmos-marble.zip
+          asset_path: ./misound-module.zip
+          asset_name: misound-module.zip
           asset_content_type: application/zip
